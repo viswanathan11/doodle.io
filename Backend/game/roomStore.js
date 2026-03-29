@@ -7,7 +7,7 @@
 //   timer: null
 // }
 
-const rooms = {
+const roomStore = {
     "ABC123": {
 
         players: [{
@@ -23,4 +23,4 @@ const rooms = {
     }
 };
 
-export default rooms;
+export default roomStore;
