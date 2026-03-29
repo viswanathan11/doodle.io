@@ -1,5 +1,6 @@
 
 import dotenv from "dotenv"
+
 import pkg from "pg";
 
 const { Pool } = pkg;
@@ -28,3 +29,4 @@ async function ConnecToDb() {
 ConnecToDb();
 
 
+export default pool;
