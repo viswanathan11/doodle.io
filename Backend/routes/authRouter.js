@@ -21,7 +21,7 @@ authRouter.post("/guest",(req,res)=>{
         color:color
     };
 
-    const token=jwt.sign(payload,process.env.JWT_SECTRE,{
+    const token=jwt.sign(payload,process.env.JWT_SECRET,{
         expiresIn:'24h'//tokens expires in 24 hours
     });
     res.status(200).json({
