@@ -1,22 +1,24 @@
-## http.createServer(app) 
-gives us a single shared server that both Express(HTTP requests) and socket.io(webSocket upgrades) can ride on - same port,same connection lifecycle.
+# Backend Core & Index (Architecture Notes)
 
-if we skip and do:
-    const app=express()
-    const io=new Server(3000);
-    app.listen(3000);
-the REST routes and socket events would be on different servers which would make impossible to upgrade the http request also there can port conflicts.
+> **Folder Purpose:** The `Backend/` directory contains the core Node.js/Express server. It is responsible for establishing REST API endpoints via Express, mounting standard web middlewares, connecting to the PostgreSQL database, instantiating the in-memory game state (`roomStore`), and simultaneously running both the HTTP Server and the Socket.IO engine.
 
+## 1. Keep `index.js` Clean!
+As the application grows, do not put all your `socket.on` logic inside the main `index.js` file.
 
-## **Socket.io**
-const io=new Server(server,{
-    cors:{
-        origin:"*",
-        methods:["GET","POST"]
-    }
-})
-*Both express and socket uses the samer server*
-this lines ensure that the ws(Web scokets) request can also perfom http methods 
+**Best Practice:**
+We successfully abstracted our Socket logic into handler functions inside `/socket/handler/`. 
+In `index.js`, we simply import and inject the `(io, socket)` objects into these modules:
+```javascript
+import registerRoomHandlers from "./socket/handler/roomHandlers.js";
+import registerDrawHandlers from "./socket/handler/drawHandler.js";
 
-**io**: walkie-talkie Tower (talk to anyone)
-**sockt**: one specific walkie-talkie(One person) 
+io.on("connection", (socket) => {
+    registerRoomHandlers(io, socket);
+    registerDrawHandlers(io, socket);
+});
+```
+This ensures that `index.js` remains the "Command Center" while the heavy lifting happens deep in the logic files.
+
+## 2. Redis vs Native In-Memory Stores
+We discussed if Redis was necessary to store Canvas History.
+**Lesson:** Redis is only needed for Horizontal Scaling (multiple Node.js instances). Since we have a Monolithic Single Server, storing temporary game state in a constant (`roomStore.js`) is perfectly acceptable, lightning-fast, and naturally "garbage collects" itself when the room key is deleted!

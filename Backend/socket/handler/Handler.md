@@ -1,5 +1,7 @@
 # Backend Sockets (Handler) - Debugging & Best Practices
 
+> **Folder Purpose:** This `handler/` directory encapsulates all real-time Socket.IO event listeners and emitters. Instead of bloating the main server file, we split networking functions into domains (like `roomHandlers` for lobby logic and `drawHandlers` for canvas sync). It handles listening for client events, interacting with the server RAM (`roomStore`), and broadcasting updates back to clients.
+
 This document chronicles the key lessons learned while building the `roomHandlers` and `drawHandler` logic for the Doodle.io backend.
 
 ## 1. The "Silent Crash" (Type Errors in Sockets)
