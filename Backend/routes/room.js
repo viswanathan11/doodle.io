@@ -27,7 +27,8 @@ roomRouter.post('/', async (req, res) => {
             players: [],
             state: 'waiting',
             currentWord: null,
-            timer: null
+            timer: null,
+            strokes:[]
         };
 
         res.status(201).json({
