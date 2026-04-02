@@ -1,3 +1,24 @@
+# Backend Sockets (Handler) - Debugging & Best Practices
 
-**io**: walkie-talkie Tower (talk to anyone)
-**sockt**: one specific walkie-talkie(One person) 
+This document chronicles the key lessons learned while building the `roomHandlers` and `drawHandler` logic for the Doodle.io backend.
+
+## 1. The "Silent Crash" (Type Errors in Sockets)
+**The Error:** `TypeError: Cannot read properties of undefined (reading 'push')` occurred when trying to execute `roomStore[code].strokes.push(strokeData);`.
+**Why it happened:** When `room.js` initially created the room, it forgot to initialize `strokes: []`. 
+**The Danger:** In Node.js, an unhandled exception inside a Socket.IO handler completely *halts* that specific function. This means the broadcast line `socket.to(code).emit(...)` never ran, killing real-time collaboration silently!
+**The Fix:** Always guarantee your initial data structures match what your handlers expect.
+
+## 2. Event Name Typos
+**The Error:** Listening to `"draw:stoke"` instead of `"draw:stroke"`.
+**Why it happened:** A simple typo on the frontend or backend.
+**The Fix:** Sockets rely strictly on strings. A 1-letter typo means the event goes into the void. It is often helpful to type your socket event names as Constants (e.g., `const DRAW_STROKE = 'draw:stroke'`) to prevent this.
+
+## 3. Node.js ES Modules Extension Rule
+**The Error:** `import roomStore from "../../game/roomStore"` caused the server to crash.
+**The Fix:** Unlike React/Vite, pure Node.js using ES Modules (`"type": "module"`) strictly requires you to type the `.js` extension at the end of local file imports.
+-> `import roomStore from "../../game/roomStore.js";`
+
+## 4. The "Ghost Town" Reconnect (Nodemon RAM Wipes)
+**The Error:** After restarting the server to apply changes, clients couldn't broadcast to each other, even though they were on `/room/ABC`.
+**Why it happened:** Our `roomStore` is an in-memory variable (Server RAM). When `nodemon` restarted the server, all existing rooms were permanently deleted. But the browser tabs were still trying to join the old codes!
+**The Takeaway:** When testing in development, every time you reboot the backend, you must go back to the front-end Home Page and create a brand new room.
