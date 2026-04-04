@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DrawingCanvas from '../Drawing/DrawingCanvas';
 import { useSocket } from '../socket/SocketContext';
-
+import Players from '../Features/Players';
+import Chat from '../Features/Chat';
 const Board = () => {
     const [color, setColor] = useState("#000000");
     const [brushSize, setBrushSize] = useState(5);
@@ -40,19 +41,46 @@ const Board = () => {
     }, [socket, code, navigate]);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
+        <div style={{display:'flex',
+            alignItems:'center',
+            justifyContent:'center',
+            height:'100vh'
+        }}>
+            
+        <div style={{ display: 'flex',
+            justifyContent:'center',
+            alignItems: 'flex-start',
+            marginTop: '20px' 
+            ,padding:'0 20px',
+            width:'100%',
+            gap:'30px'
+        }}>
+
+            {/* Left Column: Players */}
+            <Players/>
             {/* The Drawing Area */}
+
             {/* Note: we pass isDrawer=true just to test drawing! In the future this will depend on the game state */}
+            <div
+            style={{
+                display:'flex',
+                flexDirection:'column',
+                alignItems:'center'
+            }}>
             <DrawingCanvas color={color} brushSize={brushSize} isDrawer={true} />
 
             {/* The Tool Panel */}
-            <div className="glass-panel" style={{ marginTop: '20px', padding: '15px', display: 'flex', gap: '20px' }}>
+            <div className="glass-panel" style={{ 
+                marginTop: '20px', 
+                padding: '15px', 
+                display: 'flex',
+                 gap: '20px' }}>
                 <input 
                     type="color" 
                     value={color}
                     onChange={(e) => setColor(e.target.value)}
                     style={{ cursor: 'pointer' }}
-                />
+                    />
 
                 <input 
                     type="range"
@@ -61,9 +89,14 @@ const Board = () => {
                     value={brushSize}
                     onChange={(e) => setBrushSize(e.target.value)}
                     style={{ cursor: 'pointer' }}
-                />
+                    />
+                </div>
             </div>
+                
+                {/* Right Column:chat */}
+            <Chat/>
         </div>
+    </div>
     )
 }
 
