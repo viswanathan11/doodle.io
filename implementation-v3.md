@@ -305,17 +305,4 @@ NODE_ENV=development
 - [ ] Neon PostgreSQL connected in production
 - [ ] Test full game in production
 
----
-
-## Phase 2 (After MVP Works)
-
-- Persistent user accounts (email + password)
-- Save scores and game history
-- Google OAuth login
-- Custom word lists per room
-- Public matchmaking
-- Redis for scaling to multiple servers
-
----
-
-*Start with Step 1. Don't touch the frontend until Step 2 checkpoint passes.*
+-
