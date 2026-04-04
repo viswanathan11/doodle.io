@@ -263,12 +263,7 @@ NODE_ENV=development
 ### Step 1 — Backend Foundation
 - [ ] Express server, `GET /health` returns 200
 - [ ] PostgreSQL connected via `pg`
-- [ ] In-memory `roomStore.js` created
-- [ ] Run SQL migrations, tables created
-- [ ] `POST /api/auth/guest` → returns JWT with username + color
-
-### Step 2 — Rooms
-- [ ] `POST /api/rooms` → creates room, stores in DB, returns invite code
+- [ ] In-memory `roomStore.js` created/
 - [ ] `GET /api/rooms/:code` → returns room info
 - [ ] Socket.IO setup, client connects, server logs it
 - [ ] `room:join` handler → player added to room, room state sent back
