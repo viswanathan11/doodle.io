@@ -263,12 +263,7 @@ NODE_ENV=development
 ### Step 1 — Backend Foundation
 - [ ] Express server, `GET /health` returns 200
 - [ ] PostgreSQL connected via `pg`
-- [ ] In-memory `roomStore.js` created
-- [ ] Run SQL migrations, tables created
-- [ ] `POST /api/auth/guest` → returns JWT with username + color
-
-### Step 2 — Rooms
-- [ ] `POST /api/rooms` → creates room, stores in DB, returns invite code
+- [ ] In-memory `roomStore.js` created/
 - [ ] `GET /api/rooms/:code` → returns room info
 - [ ] Socket.IO setup, client connects, server logs it
 - [ ] `room:join` handler → player added to room, room state sent back
@@ -310,17 +305,4 @@ NODE_ENV=development
 - [ ] Neon PostgreSQL connected in production
 - [ ] Test full game in production
 
----
-
-## Phase 2 (After MVP Works)
-
-- Persistent user accounts (email + password)
-- Save scores and game history
-- Google OAuth login
-- Custom word lists per room
-- Public matchmaking
-- Redis for scaling to multiple servers
-
----
-
-*Start with Step 1. Don't touch the frontend until Step 2 checkpoint passes.*
+-
