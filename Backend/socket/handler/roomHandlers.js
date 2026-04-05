@@ -12,7 +12,14 @@ export default function registerRoomHandlers(io, socket) {
 
         const exisitinPlayer= room.players.find(p=>p.username===username);
         if(exisitinPlayer){
-            return console.log(`[socket] rejected duplicate user: ${username}`);
+            console.log(`[socket] rejected duplicate user: ${username}`);
+               
+       // 1. Still join the socket room so they get live updates/chat
+         socket.join(code);
+    
+       // 2. Send them the room state so they can see the players!
+       return socket.emit("room:state",room);
+
         }
         const newPlayer = {
             id: socket.id,
