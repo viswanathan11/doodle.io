@@ -1,89 +1,14 @@
 import React from "react";
 import PlayerCard from "./PlayerCard";
 
-const Players = () => {
-  const samplePlayers = [
-    {
-      id: 1,
-      username: "Doodler99",
-      score: 450,
-      rank: 1,
-      color: "#ff5722",
-      isDrawing: true,
-      hasGuessed: false,
-    },
-    {
-      id: 2,
-      username: "ArtMaster",
-      score: 320,
-      rank: 2,
-      color: "#4caf50",
-      isDrawing: false,
-      hasGuessed: true,
-    },
-    {
-      id: 3,
-      username: "Noobz",
-      score: 100,
-      rank: 3,
-      color: "#2196f3",
-      isDrawing: false,
-      hasGuessed: false,
-    },
-    {
-      id: 4,
-      username: "GuessWho",
-      score: 80,
-      rank: 4,
-      color: "#9c27b0",
-      isDrawing: false,
-      hasGuessed: false,
-    },
-    {
-      id: 5,
-      username: "Doodler99",
-      score: 450,
-      rank: 1,
-      color: "#ff5722",
-      isDrawing: true,
-      hasGuessed: false,
-    },
-    {
-      id: 6,
-      username: "ArtMaster",
-      score: 320,
-      rank: 2,
-      color: "#4caf50",
-      isDrawing: false,
-      hasGuessed: true,
-    },
-    {
-      id: 7,
-      username: "Noobz",
-      score: 100,
-      rank: 3,
-      color: "#2196f3",
-      isDrawing: false,
-      hasGuessed: false,
-    },
-    {
-      id: 8,
-      username: "GuessWho",
-      score: 80,
-      rank: 4,
-      color: "#9c27b0",
-      isDrawing: false,
-      hasGuessed: false,
-    },
-  ];
+const Players = ({players}) => {
 
   return (
     <div
       className="glass-panel"
       style={{
-        width: "auto",
-        maxWidth: "300px",
-        height: "auto",
+        width: "280px",
+        height: "600px",
         padding: "15px",
         display: "flex",
         flexDirection: "column",
@@ -115,15 +40,15 @@ const Players = () => {
         }}
       >
         {/* Sample player chard */}
-        {samplePlayers.map((player, index) => (
+        {players.map((player, index) => (
           <PlayerCard
             key={player.id}
             username={player.username}
             score={player.score}
-            rank={player.rank}
+            rank={index+1}
             color={player.color}
-            isDrawing={player.isDrawing}
-            hasGuessed={player.hasGuessed}
+            isDrawing={false}
+            hasGuessed={false}
           />
         ))}
       </div>

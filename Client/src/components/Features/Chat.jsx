@@ -1,7 +1,42 @@
 import React from "react";
 import { useSocket } from "../socket/SocketContext";
+import { useParams } from "react-router-dom";
+import { useState,useRef} from "react";
+import { useEffect } from "react";
+
+
+
 const Chat = () => {
   const socket = useSocket();
+  const{code}=useParams();
+  const messageEndRef=useRef(null);//Reference for auto-scrolling
+
+
+  const[message,setMessage]=useState([]);
+  const[inputValue,setIntpuVlaue]=useState("");
+
+  useEffect(()=>{
+    messageEndRef.current?.scrollIntoView({behavior:'smootth'});
+  },[message]);
+  
+  useEffect(()=>{
+    if(!socket) return;
+
+    socket.on("chat:message",(newMessage)=> setMessage((prevValue)=>[...prevValue,newMessage]));
+
+    return ()=>socket.off("chat:message");
+  },[socket]);
+
+
+  const handleMessage=(e)=>{
+    if(e.key==="Enter" && inputValue.trim()!==""){
+      socket.emit("chat:message",{
+        code,
+        message:inputValue,
+      });
+      setIntpuVlaue("");
+    }
+  }
   return (
     <div
       className="glass-panel"
@@ -9,7 +44,7 @@ const Chat = () => {
         width: "280px",
         height: "600px",
         display: "flex",
-        flexDirectionL: "column",
+        flexDirection: "column",
         padding: "15px",
       }}
     >
@@ -45,6 +80,18 @@ const Chat = () => {
         >
           <strong>System: </strong>Welcome to the room
         </p>
+
+        {/* loop through your chat array and show each message!  */}
+
+        {message.map((msg,index)=>(
+          <div key={index} style={{borderBottom:'1px solid #eee',padding:'5px'}}>
+            <span style={{fontWeight:'bold',color:msg.color ||'#000'}}>{msg.username}:</span>
+            <span style={{marginLeft:'8px',wordBreak:'break-word'}}>{msg.message}</span>
+          </div>
+        ))}
+
+        {/* This invisible div is what we scroll to into view */}
+        <div ref={messageEndRef}/>
       </div>
 
       {/* chat Input */}
@@ -52,11 +99,14 @@ const Chat = () => {
         <input
           type="text"
           placeholder="Type your guess here..."
+          value={inputValue}
+          onChange={(e)=>setIntpuVlaue(e.target.value)}
+          onKeyDown={handleMessage}
           style={{
             flex: 1,
             padding: "10px",
             border: "1px solid #ccc",
-            outline: "none",
+            outline: "none"
           }}
         ></input>
       </div>

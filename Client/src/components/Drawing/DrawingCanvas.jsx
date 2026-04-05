@@ -3,7 +3,7 @@ import { Stage, Layer, Line } from 'react-konva';
 import { useSocket } from '../socket/SocketContext';
 import { useParams } from 'react-router-dom';
 
-const DrawingCanvas = ({ color = '#000000', brushSize = 5 }) => {
+const DrawingCanvas = ({ color = '#000000', brushSize = 5, isDrawer = true }) => {
   const [lines, setLines] = useState([]);
   const isDrawing = useRef(false);
   const socket=useSocket();
@@ -37,7 +37,7 @@ const DrawingCanvas = ({ color = '#000000', brushSize = 5 }) => {
   const handleMouseDown = (e) => {
 
     // Securtity rule: if player not allwed to drawing they cannot draw on board
-    if(!isDrawing) return;
+    if(!isDrawer) return;
     isDrawing.current = true;
     const pos = e.target.getStage().getPointerPosition();
     
