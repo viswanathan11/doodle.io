@@ -1,4 +1,3 @@
-import { useReducer } from "react";
 import roomStore from "../../game/roomStore.js";
 
 export default function registerRoomHandlers(io, socket) {
