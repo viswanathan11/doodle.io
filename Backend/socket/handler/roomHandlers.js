@@ -1,9 +1,13 @@
 import roomStore from "../../game/roomStore.js";
 
 export default function registerRoomHandlers(io, socket) {
+
+
     //when server recieve a event room:join from client this is exected
     socket.on("room:join", ({ code, username, color }) => {
         //this gets the sepecific room and its state based on the code
+            socket.username=username;
+            socket.userColor=color;
         const room = roomStore[code];
         if (!room) {
             //send the error response to clients

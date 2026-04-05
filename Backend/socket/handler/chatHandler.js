@@ -6,18 +6,14 @@ export default function registerChatHandler(io,socket){
         const room=roomStore[code];
 
         if(room){
-
-            //find the sender in the room's players list using their socket ID
-            const player=room.players.find(p=>p.id=== socket.id);
-
-            if(player){
+            if(socket.username){
                 io.to(code).emit("chat:message",{
-                    username:player.username,
-                    color:player.color,
+                    username:socket.username,
+                    color:socket.userColor,
                     message:message
                 });
 
-                console.log(`[chat] (${player.username}) in ${code}: ${message}`);
+                console.log(`[chat] (${socket.username}) in ${code}: ${message}`);
             }
         }
     })

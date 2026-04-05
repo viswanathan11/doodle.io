@@ -55,4 +55,33 @@ This is what keeps long messages from breaking out horizontally and disappearing
 **Why it works:**
 `wordBreak: 'break-word'` allows the browser to split a word apart (even if it doesn't have spaces) and push the rest to the next line. Without this, your chat would "leak" out to the right and everything would looks broken! 
 
-**Now that this is working, do you want to tackle the Timer or the round-logic next?**
+### 4. The "Floating" Room Badge (Top-Right)
+We used `position: 'absolute'` inside a `relative` container to pin the Room Code badge to the top-right corner.
+
+```jsx
+<div style={{ 
+    position: 'absolute',    // 1. Pulls it out of the normal layout
+    top: '20px', 
+    right: '20px',           // 2. Pins it to the corners
+    display: 'flex', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
+    border: '2px solid #000', 
+    boxShadow: '3px 3px 0px #000' 
+}}>
+```
+
+### 5. Fixed-Width Sidebars (Symmetry)
+To prevent the UI from "squishing" when messages were short, we locked the sidebars to a specific width.
+- **The Trick:** Both **Players** and **Chat** are set to **`width: '280px'`**.
+- **The Result:** The canvas stays centered and the sidebars feel solid and professional.
+
+### 6. The "Drawn" Aesthetic
+Every panel uses the same "sketchbook" styling:
+- `border: '2px solid #000'` (Thick, black lines)
+- `boxShadow: '3px 3px 0px #000'` (Rigid, comic-book style shadow)
+- `borderRadius: '8px'` (Slight rounding to feel friendly but structured)
+
+---
+**What's next?** 
+The project foundation is now complete with live players, synced drawing, and smooth chat! Next stage: Game Logic (Timer, Round, Words).
