@@ -21,8 +21,8 @@ const Board = () => {
     useEffect(() => {
         if (!socket) return;
 
-        // 1. Grab their identity from localStorage so the server knows who is joining
-        const userStr = localStorage.getItem('doodle_user');
+        // 1. Grab their identity from sessionStorage so the server knows who is joining
+        const userStr = sessionStorage.getItem('doodle_user');
         if (!userStr) {
             navigate('/'); // Kick them out if they bypassed the Home page!
             return;
