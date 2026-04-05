@@ -1,3 +1,4 @@
+import { useReducer } from "react";
 import roomStore from "../../game/roomStore.js";
 
 export default function registerRoomHandlers(io, socket) {
@@ -10,6 +11,10 @@ export default function registerRoomHandlers(io, socket) {
             return socket.emit("error", { message: "Room not found" });
         }
 
+        const exisitinPlayer= room.players.find(p=>p.username===username);
+        if(exisitinPlayer){
+            return console.lof(`[socket] rejected duplicate user: ${username}`);
+        }
         const newPlayer = {
             id: socket.id,
             username,

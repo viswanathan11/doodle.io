@@ -5,8 +5,9 @@ import App from './App.jsx'
 import Chat from './components/Features/Chat.jsx'
 import Players from './components/Features/Players.jsx'
 import PlayerCard from './components/Features/PlayerCard.jsx'
+import Board from './components/Pages/GameRoom.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App/>
+    <App />
   </StrictMode>,
 )

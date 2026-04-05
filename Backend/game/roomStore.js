@@ -8,19 +8,7 @@
 // }
 
 const roomStore = {
-    "ABC123": {
-
-        players: [{
-            id: 1,
-            name: 'Viswa'
-        }, {
-            id:2,
-            name:"MindGrinder"
-        },{
-            id:3,
-            name:"TheAnonymous"
-        }]
-    }
+    
 };
 
 export default roomStore;
