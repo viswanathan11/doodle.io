@@ -12,6 +12,8 @@ const Board = () => {
     const { code } = useParams();
     const navigate = useNavigate();
     const[players,setPlayers]=useState([]);
+    const[gameState,setGameState]=useState('waiting');
+    const[timer,setTimer]=useState(0);
 
     const copyRoomCode=()=>{
         navigator.clipboard.writeText(code);
@@ -38,7 +40,10 @@ const Board = () => {
             console.log("Successfully joined the socket room!", roomState);
             //add the new guy to out existing list
             setPlayers(roomState.players);
+            setGameState(roomState.state);
+            setTimer(roomState.timer||0);
         });
+
 
         //4. LISTEN FOR PLAYERS JOINED
 
@@ -53,12 +58,21 @@ const Board = () => {
             console.log(`${username} left`);
             setPlayers((prevPlayers)=>prevPlayers.filter(p=>p.id!=playerId));
     });
+
+
+        //listening to catch the live timer updates
+
+        socket.on("game:state_changed",(newState)=>setGameState(newState));
+        socket.on("timer:update",(timeLeft)=>setTimer(timeLeft));
+
         // 6. Cleanup when they close the browser or leave the page
         return () => {
             socket.emit("room:leave", { code });
             socket.off("room:state");
             socket.off("room:player_joined");
             socket.off("room:player_left")
+            socket.off("game:state_changed");
+            socket.off("timer:update");
         }
     }, [socket, code, navigate]);
 
@@ -129,45 +143,49 @@ const Board = () => {
             width:'100%',
             gap:'30px'
         }}>
-
-            {/* Left Column: Players */}
+                {/* Left Column: Players */}
             <Players players={players}/>
-            {/* The Drawing Area */}
+            
+            {/* --- MIDDLE COLUMN: GAME AREA --- */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: '0' }}>
 
-            {/* Note: we pass isDrawer=true just to test drawing! In the future this will depend on the game state */}
-            <div
-            style={{
-                display:'flex',
-                flexDirection:'column',
-                alignItems:'center'
-            }}>
-            <DrawingCanvas color={color} brushSize={brushSize} isDrawer={true} />
+                {/* THE GAME HEADER (Timer & Notifications) */}
+                <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    width: '100%', marginBottom: '15px'
+                }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '1.2rem', textTransform: 'uppercase' }}>
+                        {gameState === 'waiting' ? 'Waiting for Players...' : 'Drawing Phase!'}
+                    </span>
 
-            {/* The Tool Panel */}
-            <div className="glass-panel" style={{ 
-                marginTop: '20px', 
-                padding: '15px', 
-                display: 'flex',
-                 gap: '20px' }}>
-                <input 
-                    type="color" 
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    style={{ cursor: 'pointer' }}
-                    />
+                    {/* Auto-Start UI Logic */}
+                    {gameState === 'waiting' ? (
+                        <span style={{ fontWeight: 'bold', color: '#ff5722', fontSize: '0.9rem' }}>
+                            🧍 Waiting for at least 2 players to start...
+                        </span>
+                    ) : (
+                        <div style={{
+                            padding: '5px 15px', border: '2px solid #000', borderRadius: '8px',
+                            backgroundColor: '#fff', fontWeight: 'bold', fontSize: '1.5rem',
+                            color: timer <= 10 ? '#f44336' : '#000', // Turns red in last 10s!
+                            boxShadow: '3px 3px 0px #000'
+                        }}>
+                            ⏳ {timer}s
+                        </div>
+                    )}
+                </div>
 
-                <input 
-                    type="range"
-                    min="1"
-                    max="50"
-                    value={brushSize}
-                    onChange={(e) => setBrushSize(e.target.value)}
-                    style={{ cursor: 'pointer' }}
-                    />
+                <DrawingCanvas color={color} brushSize={brushSize} isDrawer={true} />
+
+                {/* The Tool Panel */}
+                <div className="glass-panel" style={{ marginTop: '20px', padding: '15px', display: 'flex', gap: '20px' }}>
+                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ cursor: 'pointer' }}/>
+                    <input type="range" min="1" max="50" value={brushSize} onChange={(e) => setBrushSize(e.target.value)} style={{ cursor: 'pointer' }}/>
                 </div>
             </div>
+            {/* ---------------------------------- */}
                 
-                {/* Right Column:chat */}
+            {/* Right Column: Chat */}
             <Chat/>
         </div>
     </div>

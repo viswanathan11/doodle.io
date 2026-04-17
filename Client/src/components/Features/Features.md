@@ -82,6 +82,22 @@ Every panel uses the same "sketchbook" styling:
 - `boxShadow: '3px 3px 0px #000'` (Rigid, comic-book style shadow)
 - `borderRadius: '8px'` (Slight rounding to feel friendly but structured)
 
+### 7. The Global Synced Clock
+*(Date: 2026-04-17)*
+
+To prevent "desync" (where one player sees 10 seconds left, and another player sees 5 seconds because of a laggy computer), we rely entirely on the backend to track time. The frontend simply listens to the backend ticking:
+```jsx
+socket.on("timer:update", (timeLeft) => setTimer(timeLeft));
+```
+
+### 8. Conditional Game Headers
+*(Date: 2026-04-17)*
+
+We used multiple ternary operators to instantly change the view above the canvas based on the room state:
+1. `gameState === 'waiting'` ? Show Waiting Text.
+2. If waiting, `players.length < 2` ? Show "Waiting for at least 2 players".
+3. If playing, show `⏳ {timer}s`. 
+
 ---
 **What's next?** 
-The project foundation is now complete with live players, synced drawing, and smooth chat! Next stage: Game Logic (Timer, Round, Words).
+Step 1 complete! Next stage: Step 2 (The Word Mystery and The Drawer)

@@ -1,5 +1,5 @@
 import roomStore from "../../game/roomStore.js";
-
+import startGame, { stopGame } from "./gameHandler.js";
 export default function registerRoomHandlers(io, socket) {
 
 
@@ -46,6 +46,13 @@ export default function registerRoomHandlers(io, socket) {
         socket.to(code).emit("room:player_joined", newPlayer);
 
         console.log(`[socket] (${username}) (${socket.id}) joined room ${code}`);
+
+
+        //If there are now 2 or more players,atuomatically start the game!
+
+        if(room.players.length>=2 && room.state==='waiting'){
+            startGame(io,code,room);
+        }
     });
 
 
@@ -86,6 +93,11 @@ function handlePlayerLeave(io, socket, code) {
             });
 
             console.log(`[Socket] ${player.username} (${socket.id}) left room ${code}`);
+
+            // NEW: If players drop below 2, stop the game!
+            if (room.players.length < 2 && room.state === 'playing') {
+                stopGame(io, code, room);
+            }
         }
     }
 }
