@@ -18,8 +18,8 @@ export default function Home() {
   // Helper function: Used by both Create and Join
   const loginGuest = async () => {
     const authRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/guest`, { username, color });
-    localStorage.setItem('doodle_token', authRes.data.token);
-    localStorage.setItem('doodle_user', JSON.stringify({ username, color }));
+    sessionStorage.setItem('doodle_token', authRes.data.token);
+    sessionStorage.setItem('doodle_user', JSON.stringify({ username, color }));
   };
 
   const handleCreateRoom = async (e) => {

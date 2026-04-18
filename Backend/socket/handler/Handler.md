@@ -28,3 +28,17 @@ This document chronicles the key lessons learned while building the `roomHandler
 **The Error:** After restarting the server to apply changes, clients couldn't broadcast to each other, even though they were on `/room/ABC`.
 **Why it happened:** Our `roomStore` is an in-memory variable (Server RAM). When `nodemon` restarted the server, all existing rooms were permanently deleted. But the browser tabs were still trying to join the old codes!
 **The Takeaway:** When testing in development, every time you reboot the backend, you must go back to the front-end Home Page and create a brand new room.
+
+## 5. The "Circular JSON" Crash (Node.js Timers)
+*(Date: 2026-04-17)*
+
+**The Error:** `TypeError: Converting circular structure to JSON` and `RangeError: Maximum call stack size exceeded`.
+**Why it happened:** We tried to store a Node.js `setInterval` return value (`Timeout` object) directly inside our `room` object (`room.intervalId = setInterval(...)`). When Socket.io tried to broadcast the `room` over the network using `socket.emit("room:state", room)`, it tried to convert the `Timeout` object to JSON. Because `Timeout` objects are infinitely circular, the server choked and instantly crashed.
+**The Fix:** We created an entirely separate memory dictionary `const gameIntervals = {}` inside `gameHandler.js`. This keeps the massive `Timeout` machinery isolated on the server and completely out of the simple `room` data that gets sent to clients!
+
+## 6. Auto-Starting & Auto-Stopping the Game
+*(Date: 2026-04-17)*
+
+**The System:** Instead of relying on a human clicking a UI button, we enforce start/stop rules natively on the server:
+- **Auto-Start:** In `roomHandlers.js`, right after someone joins, we check `if (room.players.length >= 2 && room.state === 'waiting')`. If true, the server automatically fires the timer!
+- **Auto-Stop:** In `handlePlayerLeave`, we check `if (room.players.length < 2 && room.state === 'playing')`. If true, we clear the internal loop and safely reset `room.state = 'waiting'`.
