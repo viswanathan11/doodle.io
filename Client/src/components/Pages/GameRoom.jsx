@@ -75,21 +75,25 @@ const Board = () => {
             setArtistId(data.artist);
             setWordOptions(data.options || []);
         });
-
+        
         socket.on("game:round_started", ({ state, artist, word }) => {
             setGameState(state);
             setArtistId(artist);
             setWord(word);
         });
-
+        
         socket.on("timer:update", (timeLeft) => setTimer(timeLeft));
-
+        
         // Kick them out if the server says the room crashed or no longer exists
         socket.on("error", ({ message }) => {
             alert("Error: " + message);
             navigate('/');
         }); 
         
+        socket.on("game:scores_update", (updatedPlayers) => {
+            setPlayers(updatedPlayers);
+        });
+
         return () => {
             socket.emit("room:leave", { code });
             socket.off("room:state");
@@ -99,6 +103,7 @@ const Board = () => {
             socket.off("timer:update");
             socket.off("game:word_selection");
             socket.off("game:round_started");
+            socket.off("game:score_update")
         }
     }, [socket, code, navigate]);
 

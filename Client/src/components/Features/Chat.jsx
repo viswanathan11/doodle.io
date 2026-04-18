@@ -16,15 +16,21 @@ const Chat = () => {
   const[inputValue,setIntpuVlaue]=useState("");
 
   useEffect(()=>{
-    messageEndRef.current?.scrollIntoView({behavior:'smootth'});
+    messageEndRef.current?.scrollIntoView({behavior:'smooth'});
   },[message]);
   
   useEffect(()=>{
     if(!socket) return;
 
-    socket.on("chat:message",(newMessage)=> setMessage((prevValue)=>[...prevValue,newMessage]));
+    socket.on("chat:message", (newMessage) => setMessage((prev) => [...prev, newMessage]));
+    
+    // NEW: Listen for System Messages (like "Sanji guessed the word!" or "Shhh!")
+    socket.on("chat:system", (sysMsg) => setMessage((prev) => [...prev, { isSystem: true, ...sysMsg }]));
 
-    return ()=>socket.off("chat:message");
+    return ()=>{
+      socket.off("chat:message");
+      socket.off("chat:system");
+    }
   },[socket]);
 
 
@@ -82,13 +88,34 @@ const Chat = () => {
         </p>
 
         {/* loop through your chat array and show each message!  */}
-
-        {message.map((msg,index)=>(
-          <div key={index} style={{borderBottom:'1px solid #eee',padding:'5px'}}>
-            <span style={{fontWeight:'bold',color:msg.color ||'#000'}}>{msg.username}:</span>
-            <span style={{marginLeft:'8px',wordBreak:'break-word'}}>{msg.message}</span>
-          </div>
-        ))}
+        {message.map((msg,index) => {
+          // If it's a Server System Message
+          if (msg.isSystem) {
+            return (
+              <div key={index} style={{ padding: '5px', color: msg.color || '#4CAF50', fontWeight: 'bold', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.05)', margin: '5px 0', borderRadius: '5px' }}>
+                {msg.message}
+              </div>
+            );
+          }
+          
+          // If it's a Winner's Ghost Message (completely green)
+          if (msg.isGhost) {
+             return (
+              <div key={index} style={{ borderBottom: '1px solid #eee', padding: '5px', color: '#4CAF50', fontWeight: 'bold' }}>
+                <span>{msg.username}: </span>
+                <span style={{ marginLeft: '8px', wordBreak: 'break-word' }}>{msg.message}</span>
+              </div>
+            );
+          }
+          
+          // Otherwise, Normal Chat Message
+          return (
+            <div key={index} style={{borderBottom:'1px solid #eee',padding:'5px'}}>
+              <span style={{fontWeight:'bold',color:msg.color ||'#000'}}>{msg.username}:</span>
+              <span style={{marginLeft:'8px',wordBreak:'break-word'}}>{msg.message}</span>
+            </div>
+          );
+        })}
 
         {/* This invisible div is what we scroll to into view */}
         <div ref={messageEndRef}/>

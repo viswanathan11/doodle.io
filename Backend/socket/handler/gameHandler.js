@@ -142,3 +142,20 @@ export function stopGame(io, code, room) {
     io.to(code).emit("game:state_changed", room.state);
 }
 
+export function checkRoundEndEarly(io, code, room) {
+    if (room.state !== 'playing') return;
+    
+    // Are there any guessers who HAVEN'T guessed the word?
+    const missingGuessers = room.players.filter(p => p.id !== room.currentArtist && !p.hasGuessed);
+    
+    if (missingGuessers.length === 0) {
+        // Everyone guessed it!
+        io.to(code).emit("chat:system", { 
+            message: `Everyone guessed the word! It was '${room.currentWord}'`, 
+            color: "#FF9800" 
+        });
+        
+        // Force the timer to 0 so the existing logic stops the round instantly!
+        room.timer = 0;
+    }
+}
