@@ -1,5 +1,8 @@
 import roomStore from "../../game/roomStore.js";
-import startGame, { stopGame } from "./gameHandler.js";
+import  {startGame, stopGame } from "./gameHandler.js";
+
+const disconnectTimers = {};
+
 export default function registerRoomHandlers(io, socket) {
 
 
@@ -16,14 +19,36 @@ export default function registerRoomHandlers(io, socket) {
 
         const exisitinPlayer= room.players.find(p=>p.username===username);
         if(exisitinPlayer){
-            console.log(`[socket] rejected duplicate user: ${username}`);
-               
-       // 1. Still join the socket room so they get live updates/chat
-         socket.join(code);
-    
-       // 2. Send them the room state so they can see the players!
-       return socket.emit("room:state",room);
+            console.log(`[socket] user reconnected: ${username}`);
+            
+            // UPDATE their internal ID so they don't get erased by the delayed disconnect!
+            const oldId = exisitinPlayer.id;
+            
+            // NEW: If there is a pending disconnect timer for this player (React Strict mode or fast refresh), CANCEL IT!
+            if (disconnectTimers[oldId]) {
+                clearTimeout(disconnectTimers[oldId]);
+                delete disconnectTimers[oldId];
+                console.log(`[socket] Cancelled disconnect timer for reconnected user: ${username}`);
+            }
 
+            exisitinPlayer.id = socket.id;
+            
+            // If they were drawing, give them the brush back!
+            if (room.currentArtist === oldId) {
+                room.currentArtist = socket.id;
+            }
+               
+           // 1. Still join the socket room so they get live updates/chat
+           socket.join(code);
+    
+           // 2. Send them the room state so they can see the players!
+           // Protect the Word Data (Don't leak the real word or the options to guessers!)
+           const safeRoom = {
+               ...room,
+               currentWord: room.currentArtist === socket.id ? room.currentWord : room.currentWord?.replace(/[a-zA-Z]/g, '_'),
+               wordOptions: room.currentArtist === socket.id ? room.wordOptions : null
+           };
+           return socket.emit("room:state", safeRoom);
         }
         const newPlayer = {
             id: socket.id,
@@ -38,7 +63,13 @@ export default function registerRoomHandlers(io, socket) {
         socket.join(code);
 
         //Send current room state to the player who just joined
-        socket.emit("room:state", room);
+        // Protect the Word Data (Don't leak the real word or the options to guessers!)
+        const safeRoom = {
+            ...room,
+            currentWord: room.currentArtist === socket.id ? room.currentWord : room.currentWord?.replace(/[a-zA-Z]/g, '_'),
+            wordOptions: room.currentArtist === socket.id ? room.wordOptions : null
+        };
+        socket.emit("room:state", safeRoom);
 
 
         //tell ever else in thsi room about the new player
@@ -81,23 +112,32 @@ function handlePlayerLeave(io, socket, code) {
     const room = roomStore[code];
 
     if (room) {
-        const playerIndex = room.players.findIndex(p => p.id === socket.id);
+        // Give them a 5-second grace period to reconnect before we officially delete them!
+        disconnectTimers[socket.id] = setTimeout(() => {
+            // Clean up the timer reference
+            delete disconnectTimers[socket.id];
+            
+            // Check if they are STILL in the array under their OLD socket ID.
+            // If they reconnected, our 'room:join' logic updated their ID, so this will be -1!
+            const playerIndex = room.players.findIndex(p => p.id === socket.id);
 
-        if (playerIndex !== -1) {
-            const player = room.players.splice(playerIndex, 1)[0];
+            if (playerIndex !== -1) {
+                // They truly left forever. Remove them!
+                const player = room.players.splice(playerIndex, 1)[0];
 
-            socket.leave(code);
+                socket.leave(code);
 
-            io.to(code).emit("room:player_left", {
-                playerId: socket.id, username: player.username
-            });
+                io.to(code).emit("room:player_left", {
+                    playerId: socket.id, username: player.username
+                });
 
-            console.log(`[Socket] ${player.username} (${socket.id}) left room ${code}`);
+                console.log(`[Socket] ${player.username} (${socket.id}) officially left room ${code}`);
 
-            // NEW: If players drop below 2, stop the game!
-            if (room.players.length < 2 && room.state === 'playing') {
-                stopGame(io, code, room);
+                // If players drop below 2, stop the game!
+                if (room.players.length < 2 && room.state === 'playing') {
+                    stopGame(io, code, room);
+                }
             }
-        }
+        }, 5000); // 5000ms = 5 seconds
     }
 }
