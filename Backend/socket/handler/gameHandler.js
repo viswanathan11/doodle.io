@@ -54,18 +54,16 @@ export async function startGame(io, code, room) {
             });
         });
         
-        let timeLeft = 10;
-        room.timer = timeLeft;
-        io.to(code).emit("timer:update", timeLeft);
+        room.timer = 10;
+        io.to(code).emit("timer:update", room.timer);
         
         if (gameIntervals[code]) clearInterval(gameIntervals[code]);
         
         gameIntervals[code] = setInterval(() => {
-            timeLeft--;
-            room.timer = timeLeft;
-            io.to(code).emit("timer:update", timeLeft);
+            room.timer--;
+            io.to(code).emit("timer:update", room.timer);
             
-            if (timeLeft <= 0) {
+            if (room.timer <= 0) {
                 // Auto-pick if they take too long!
                 startDrawingPhase(io, code, room, room.wordOptions[0]);
             }
@@ -90,16 +88,17 @@ function startDrawingPhase(io, code, room, chosenWord) {
         });
     });
     
-    let timeLeft = 60;
-    room.timer = timeLeft;
-    io.to(code).emit("timer:update", timeLeft);
+    // NEW: Reset the guessing states for the new round!
+    room.players.forEach(p => p.hasGuessed = false);
+    
+    room.timer = 60;
+    io.to(code).emit("timer:update", room.timer);
     
     gameIntervals[code] = setInterval(() => {
-        timeLeft--;
-        room.timer = timeLeft;
-        io.to(code).emit("timer:update", timeLeft);
+        room.timer--;
+        io.to(code).emit("timer:update", room.timer);
         
-        if (timeLeft <= 0) {
+        if (room.timer <= 0) {
             clearInterval(gameIntervals[code]);
             
             // --- TURN OVER LOGIC ---
