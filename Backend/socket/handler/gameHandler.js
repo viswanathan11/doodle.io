@@ -29,6 +29,13 @@ export async function startGame(io, code, room) {
         if (room.artistIndex >= room.players.length) {
             room.artistIndex = 0; // Wrap back to the first player
             room.round++;         // ...and increase the NeonDB Round difficulty!
+            
+            io.to(code).emit("game:round_update", room.round); // Tell clients!
+            
+            // TASK 4: END GAME AFTER ROUND 3
+            if (room.round > 3) {
+                return handleGameOver(io, code, room);
+            }
         }
         
         room.currentArtist = room.players[room.artistIndex].id;
@@ -158,3 +165,21 @@ export function checkRoundEndEarly(io, code, room) {
         room.timer = 0;
     }
 }
+
+function handleGameOver(io, code, room) {
+    if (gameIntervals[code]) clearInterval(gameIntervals[code]);
+    room.state = 'game_over';
+    room.timer = null;
+    room.currentArtist = null;
+    room.currentWord = null;
+    
+    // Tell clients game is over so they display the Podium
+    io.to(code).emit("game:state_changed", room.state);
+    
+    // Automatically kick everyone back to home in exactly 10 seconds!
+    setTimeout(() => {
+        io.to(code).emit("error", { message: "The game is complete! Thank you for playing." });
+        room.players = [];
+    }, 10000);
+}
+

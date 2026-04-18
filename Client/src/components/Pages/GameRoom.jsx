@@ -21,6 +21,7 @@ const Board = () => {
     const [word, setWord] = useState('');
     const [artistId, setArtistId] = useState(null);
     const [wordOptions, setWordOptions] = useState([]);
+    const [round, setRound] = useState(1);
     
     // Super powerful boolean we can use to flip UI elements based on whose turn it is!
     const isDrawer = socket?.id === artistId; 
@@ -51,6 +52,7 @@ const Board = () => {
             setWord(roomState.currentWord || '');
             setArtistId(roomState.currentArtist || null);
             setWordOptions(roomState.wordOptions || []);
+            setRound(roomState.round || 1);
         });
 
         // 2. Someone Joined/Left
@@ -93,6 +95,8 @@ const Board = () => {
         socket.on("game:scores_update", (updatedPlayers) => {
             setPlayers(updatedPlayers);
         });
+
+        socket.on("game:round_update", (newRound) => setRound(newRound));
 
         return () => {
             socket.emit("room:leave", { code });
@@ -145,6 +149,7 @@ const Board = () => {
 
                         <div style={{ letterSpacing: '8px', fontSize: '1.8rem', fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
                             {word}
+                            {gameState !== 'waiting' && <div style={{ fontSize: '1rem', letterSpacing: 'normal', color: '#666', marginTop: '5px' }}>Round {round} / 3</div>}
                         </div>
 
                         <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
@@ -161,46 +166,69 @@ const Board = () => {
                         </div>
                     </div>
 
-                    {/* CANVAS WRAPPER (Includes Overlay) */}
-                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', width: '100%' }}>
-                        
-                        {gameState === 'word_selection' && (
-                            <div style={{
-                                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                                backgroundColor: 'rgba(255,255,255,0.85)', zIndex: 10, borderRadius: '8px',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
-                            }}>
-                                {isDrawer ? (
-                                    <>
-                                        <h2 style={{ marginBottom: '20px', fontFamily: 'sans-serif' }}>Select a Word</h2>
-                                        <div style={{ display: 'flex', gap: '15px' }}>
-                                            {wordOptions.map(opt => (
-                                                <button key={opt} 
-                                                    onClick={() => socket.emit("game:word_select", { code, word: opt })}
-                                                    style={{
-                                                        padding: '10px 20px', fontSize: '1.2rem', cursor: 'pointer',
-                                                        backgroundColor: '#fff', border: '2px solid #000', 
-                                                        borderRadius: '8px', boxShadow: '3px 3px 0px #000', fontWeight: 'bold'
-                                                    }}>
-                                                    {opt}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <h2>The Artist is picking a word...</h2>
-                                )}
+                    {/* MID-COLUMN DYNAMIC AREA */}
+                    {gameState === 'game_over' ? (
+                        <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: '10px', border: '3px solid #000', padding: '40px' }}>
+                            <h1 style={{ fontSize: '3rem', marginBottom: '10px' }}>🏆 PODIUM 🏆</h1>
+                            <h3 style={{ color: '#666', marginBottom: '30px' }}>Final Standings</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '80%' }}>
+                                {players.sort((a,b) => b.score - a.score).map((p, index) => (
+                                    <div key={p.id} style={{
+                                        padding: '15px 30px', border: '3px solid #000', borderRadius: '8px',
+                                        backgroundColor: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : '#f0f0f0',
+                                        fontWeight: 'bold', fontSize: '1.5rem', display: 'flex', justifyContent: 'space-between'
+                                    }}>
+                                        <span>#{index + 1} {p.username}</span>
+                                        <span>{p.score} pts</span>
+                                    </div>
+                                ))}
                             </div>
-                        )}
+                            <p style={{ marginTop: '30px', fontWeight: 'bold', color: '#ff5722' }}>Returning to Lobby in 10 seconds...</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* CANVAS WRAPPER (Includes Overlay) */}
+                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                
+                                {gameState === 'word_selection' && (
+                                    <div style={{
+                                        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                        backgroundColor: 'rgba(255,255,255,0.85)', zIndex: 10, borderRadius: '8px',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                                    }}>
+                                        {isDrawer ? (
+                                            <>
+                                                <h2 style={{ marginBottom: '20px', fontFamily: 'sans-serif' }}>Select a Word</h2>
+                                                <div style={{ display: 'flex', gap: '15px' }}>
+                                                    {wordOptions.map(opt => (
+                                                        <button key={opt} 
+                                                            onClick={() => socket.emit("game:word_select", { code, word: opt })}
+                                                            style={{
+                                                                padding: '10px 20px', fontSize: '1.2rem', cursor: 'pointer',
+                                                                backgroundColor: '#fff', border: '2px solid #000', 
+                                                                borderRadius: '8px', boxShadow: '3px 3px 0px #000', fontWeight: 'bold'
+                                                            }}>
+                                                            {opt}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <h2>The Artist is picking a word...</h2>
+                                        )}
+                                    </div>
+                                )}
 
-                        <DrawingCanvas color={color} brushSize={brushSize} isDrawer={isDrawer} />
-                    </div>
+                                <DrawingCanvas color={color} brushSize={brushSize} isDrawer={isDrawer} />
+                            </div>
 
-                    {/* The Tool Panel */}
-                    <div className="glass-panel" style={{ marginTop: '20px', padding: '15px', display: 'flex', gap: '20px' }}>
-                        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ cursor: 'pointer' }}/>
-                        <input type="range" min="1" max="50" value={brushSize} onChange={(e) => setBrushSize(e.target.value)} style={{ cursor: 'pointer' }}/>
-                    </div>
+                            {/* The Tool Panel */}
+                            <div className="glass-panel" style={{ marginTop: '20px', padding: '15px', display: 'flex', gap: '20px' }}>
+                                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ cursor: 'pointer' }}/>
+                                <input type="range" min="1" max="50" value={brushSize} onChange={(e) => setBrushSize(e.target.value)} style={{ cursor: 'pointer' }}/>
+                            </div>
+                        </>
+                    )}
                 </div>
                 
                 {/* Right Column: Chat */}
