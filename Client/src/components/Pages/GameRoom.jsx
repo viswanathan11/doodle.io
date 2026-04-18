@@ -183,7 +183,16 @@ const Board = () => {
                                     </div>
                                 ))}
                             </div>
-                            <p style={{ marginTop: '30px', fontWeight: 'bold', color: '#ff5722' }}>Returning to Lobby in 10 seconds...</p>
+                            <button 
+                                onClick={() => navigate('/')}
+                                style={{ 
+                                    marginTop: '40px', padding: '15px 40px', fontSize: '1.2rem', fontWeight: 'bold', 
+                                    color: '#fff', backgroundColor: '#ff5722', border: '3px solid #000', 
+                                    borderRadius: '8px', cursor: 'pointer', boxShadow: '3px 3px 0px #000',
+                                    textTransform: 'uppercase', letterSpacing: '1px'
+                                }}>
+                                Exit to Lobby
+                            </button>
                         </div>
                     ) : (
                         <>

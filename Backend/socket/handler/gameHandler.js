@@ -175,11 +175,5 @@ function handleGameOver(io, code, room) {
     
     // Tell clients game is over so they display the Podium
     io.to(code).emit("game:state_changed", room.state);
-    
-    // Automatically kick everyone back to home in exactly 10 seconds!
-    setTimeout(() => {
-        io.to(code).emit("error", { message: "The game is complete! Thank you for playing." });
-        room.players = [];
-    }, 10000);
 }
 
