@@ -1,5 +1,5 @@
 import roomStore from "../../game/roomStore.js";
-import startGame, { stopGame } from "./gameHandler.js";
+import  {startGame, stopGame } from "./gameHandler.js";
 export default function registerRoomHandlers(io, socket) {
 
 
@@ -16,20 +16,28 @@ export default function registerRoomHandlers(io, socket) {
 
         const exisitinPlayer= room.players.find(p=>p.username===username);
         if(exisitinPlayer){
-            console.log(`[socket] rejected duplicate user: ${username}`);
+            console.log(`[socket] user reconnected: ${username}`);
+            
+            // UPDATE their internal ID so they don't get erased by the delayed disconnect!
+            const oldId = exisitinPlayer.id;
+            exisitinPlayer.id = socket.id;
+            
+            // If they were drawing, give them the brush back!
+            if (room.currentArtist === oldId) {
+                room.currentArtist = socket.id;
+            }
                
-       // 1. Still join the socket room so they get live updates/chat
-         socket.join(code);
+           // 1. Still join the socket room so they get live updates/chat
+           socket.join(code);
     
-       // 2. Send them the room state so they can see the players!
-       // Protect the Word Data (Don't leak the real word or the options to guessers!)
-       const safeRoom = {
-           ...room,
-           currentWord: room.currentArtist === socket.id ? room.currentWord : room.currentWord?.replace(/[a-zA-Z]/g, '_'),
-           wordOptions: room.currentArtist === socket.id ? room.wordOptions : null
-       };
-       return socket.emit("room:state", safeRoom);
-
+           // 2. Send them the room state so they can see the players!
+           // Protect the Word Data (Don't leak the real word or the options to guessers!)
+           const safeRoom = {
+               ...room,
+               currentWord: room.currentArtist === socket.id ? room.currentWord : room.currentWord?.replace(/[a-zA-Z]/g, '_'),
+               wordOptions: room.currentArtist === socket.id ? room.wordOptions : null
+           };
+           return socket.emit("room:state", safeRoom);
         }
         const newPlayer = {
             id: socket.id,

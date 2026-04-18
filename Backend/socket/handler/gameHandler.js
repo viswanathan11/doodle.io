@@ -106,6 +106,10 @@ function startDrawingPhase(io, code, room, chosenWord) {
             room.timer = null;
             room.currentArtist = null;
             room.currentWord = null;
+            room.strokes = []; // Clear server memory of the drawing!
+            
+            // Tell all clients to wipe their canvases
+            io.to(code).emit("draw:clear_board");
             
             // Prime the index for the NEXT player
             room.artistIndex++;   

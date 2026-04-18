@@ -28,9 +28,13 @@ const DrawingCanvas = ({ color = '#000000', brushSize = 5, isDrawer = true }) =>
     //this executes whenever there is change in room state
     socket.on("room:state",handleRoomState);
     
+    // Clear the board when the server says the turn is over!
+    socket.on("draw:clear_board", () => setLines([]));
+    
     return ()=>{
       socket.off("draw:stroke",handleIncomingStroke);
       socket.off("room:state",handleRoomState);
+      socket.off("draw:clear_board");
     }
   },[socket])
   // Fired when the user presses the mouse down to start drawing

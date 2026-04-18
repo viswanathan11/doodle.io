@@ -42,3 +42,14 @@ This document chronicles the key lessons learned while building the `roomHandler
 **The System:** Instead of relying on a human clicking a UI button, we enforce start/stop rules natively on the server:
 - **Auto-Start:** In `roomHandlers.js`, right after someone joins, we check `if (room.players.length >= 2 && room.state === 'waiting')`. If true, the server automatically fires the timer!
 - **Auto-Stop:** In `handlePlayerLeave`, we check `if (room.players.length < 2 && room.state === 'playing')`. If true, we clear the internal loop and safely reset `room.state = 'waiting'`.
+
+## 7. The "Refresh Erase" Bug (Socket Reconnection Edge Case)
+*(Date: 2026-04-18)*
+
+**The Error:** When a user refreshed their browser during an active game session, the UI suddenly wiped out their player card and they were stranded in an empty room, unable to draw.
+**Why it happened:** Network timing overlaps!
+1. The user clicks refresh. A **brand new socket connection** rapidly hits the server before the browser is fully able to close the **old socket connection**.
+2. The server detects the `username` is already in the `room.players` list (because the old socket hasn't quit yet) and treats the new one as a "duplicate". It refuses to save the new socket ID to the active players array.
+3. ~1 second later, the old socket fully terminates. The server's `disconnect` handler finally fires, finds the old socket ID in the players list, assumes the player quit the game entirely, and deletes them from the master list!
+4. The server broadcasts `"room:player_left"`. The *new socket* receives this broadcast, assumes "someone else" just left, and deletes itself from the UI forever.
+**The Fix:** We implemented a "Handshake Update". If `roomHandlers` detects an existing user reconnecting, we violently update their `player.id` to match the *new* socket ID. We also check if their old ID was the `currentArtist`, and transfer the brush to the new ID. When the old connection inevitably dies a second later, the `disconnect` handler ignores it because that ID no longer exists!
