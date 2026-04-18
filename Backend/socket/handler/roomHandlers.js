@@ -22,7 +22,13 @@ export default function registerRoomHandlers(io, socket) {
          socket.join(code);
     
        // 2. Send them the room state so they can see the players!
-       return socket.emit("room:state",room);
+       // Protect the Word Data (Don't leak the real word or the options to guessers!)
+       const safeRoom = {
+           ...room,
+           currentWord: room.currentArtist === socket.id ? room.currentWord : room.currentWord?.replace(/[a-zA-Z]/g, '_'),
+           wordOptions: room.currentArtist === socket.id ? room.wordOptions : null
+       };
+       return socket.emit("room:state", safeRoom);
 
         }
         const newPlayer = {
@@ -38,7 +44,13 @@ export default function registerRoomHandlers(io, socket) {
         socket.join(code);
 
         //Send current room state to the player who just joined
-        socket.emit("room:state", room);
+        // Protect the Word Data (Don't leak the real word or the options to guessers!)
+        const safeRoom = {
+            ...room,
+            currentWord: room.currentArtist === socket.id ? room.currentWord : room.currentWord?.replace(/[a-zA-Z]/g, '_'),
+            wordOptions: room.currentArtist === socket.id ? room.wordOptions : null
+        };
+        socket.emit("room:state", safeRoom);
 
 
         //tell ever else in thsi room about the new player

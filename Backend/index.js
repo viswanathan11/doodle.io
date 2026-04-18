@@ -9,6 +9,7 @@ import { Server } from "socket.io";
 import registerRoomHandlers from "./socket/handler/roomHandlers.js";
 import regsisterDrawHadler from "./socket/handler/drawHandler.js";
 import registerChatHandler from "./socket/handler/chatHandler.js";
+import { registerGameHandler } from "./socket/handler/gameHandler.js";
 dotenv.config();
 
 const app = new express();
@@ -41,6 +42,7 @@ io.on("connection", (socket) => {
     registerRoomHandlers(io,socket);
     regsisterDrawHadler(io,socket);
     registerChatHandler(io,socket);
+    registerGameHandler(io,socket);
 })
 
 //NOTE: Using the server object we are sharring the same port number to 
