@@ -97,19 +97,27 @@ const Board = () => {
         });
 
         socket.on("game:round_update", (newRound) => setRound(newRound));
+        
+        socket.on("game:hint_update", (newHint) => {
+            // Only update if we aren't the drawer (the drawer shouldn't have their word overwritten by underscores!)
+            if (socket.id !== artistId) {
+                setWord(newHint);
+            }
+        });
 
         return () => {
-            socket.emit("room:leave", { code });
-            socket.off("room:state");
+             socket.emit("room:leave", { code });
+             socket.off("room:state");
             socket.off("room:player_joined");
             socket.off("room:player_left");
             socket.off("game:state_changed");
             socket.off("timer:update");
             socket.off("game:word_selection");
             socket.off("game:round_started");
-            socket.off("game:score_update")
+            socket.off("game:score_update");
+            socket.off("game:hint_update");
         }
-    }, [socket, code, navigate]);
+    }, [socket, code, navigate, artistId]);
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>

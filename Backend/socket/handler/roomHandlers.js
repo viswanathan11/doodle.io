@@ -43,9 +43,10 @@ export default function registerRoomHandlers(io, socket) {
     
            // 2. Send them the room state so they can see the players!
            // Protect the Word Data (Don't leak the real word or the options to guessers!)
+           const currentMaskedWord = room.hintState ? room.hintState.join('') : room.currentWord?.replace(/[a-zA-Z]/g, '_');
            const safeRoom = {
                ...room,
-               currentWord: room.currentArtist === socket.id ? room.currentWord : room.currentWord?.replace(/[a-zA-Z]/g, '_'),
+               currentWord: room.currentArtist === socket.id ? room.currentWord : currentMaskedWord,
                wordOptions: room.currentArtist === socket.id ? room.wordOptions : null
            };
            return socket.emit("room:state", safeRoom);
@@ -64,9 +65,10 @@ export default function registerRoomHandlers(io, socket) {
 
         //Send current room state to the player who just joined
         // Protect the Word Data (Don't leak the real word or the options to guessers!)
+        const currentMaskedWord = room.hintState ? room.hintState.join('') : room.currentWord?.replace(/[a-zA-Z]/g, '_');
         const safeRoom = {
             ...room,
-            currentWord: room.currentArtist === socket.id ? room.currentWord : room.currentWord?.replace(/[a-zA-Z]/g, '_'),
+            currentWord: room.currentArtist === socket.id ? room.currentWord : currentMaskedWord,
             wordOptions: room.currentArtist === socket.id ? room.wordOptions : null
         };
         socket.emit("room:state", safeRoom);
