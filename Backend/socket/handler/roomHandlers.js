@@ -1,5 +1,8 @@
 import roomStore from "../../game/roomStore.js";
 import  {startGame, stopGame } from "./gameHandler.js";
+
+const disconnectTimers = {};
+
 export default function registerRoomHandlers(io, socket) {
 
 
@@ -20,6 +23,14 @@ export default function registerRoomHandlers(io, socket) {
             
             // UPDATE their internal ID so they don't get erased by the delayed disconnect!
             const oldId = exisitinPlayer.id;
+            
+            // NEW: If there is a pending disconnect timer for this player (React Strict mode or fast refresh), CANCEL IT!
+            if (disconnectTimers[oldId]) {
+                clearTimeout(disconnectTimers[oldId]);
+                delete disconnectTimers[oldId];
+                console.log(`[socket] Cancelled disconnect timer for reconnected user: ${username}`);
+            }
+
             exisitinPlayer.id = socket.id;
             
             // If they were drawing, give them the brush back!
@@ -102,7 +113,10 @@ function handlePlayerLeave(io, socket, code) {
 
     if (room) {
         // Give them a 5-second grace period to reconnect before we officially delete them!
-        setTimeout(() => {
+        disconnectTimers[socket.id] = setTimeout(() => {
+            // Clean up the timer reference
+            delete disconnectTimers[socket.id];
+            
             // Check if they are STILL in the array under their OLD socket ID.
             // If they reconnected, our 'room:join' logic updated their ID, so this will be -1!
             const playerIndex = room.players.findIndex(p => p.id === socket.id);
