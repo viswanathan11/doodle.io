@@ -29,6 +29,13 @@ export async function startGame(io, code, room) {
         if (room.artistIndex >= room.players.length) {
             room.artistIndex = 0; // Wrap back to the first player
             room.round++;         // ...and increase the NeonDB Round difficulty!
+            
+            io.to(code).emit("game:round_update", room.round); // Tell clients!
+            
+            // TASK 4: END GAME AFTER ROUND 3
+            if (room.round > 3) {
+                return handleGameOver(io, code, room);
+            }
         }
         
         room.currentArtist = room.players[room.artistIndex].id;
@@ -78,9 +85,22 @@ function startDrawingPhase(io, code, room, chosenWord) {
     room.state = 'playing';
     room.currentWord = chosenWord;
     
+    // --- HINT SYSTEM SETUP ---
+    room.hintsRevealed = 0;
+    room.maxHints = Math.floor(chosenWord.length / 2);
+    room.hintState = chosenWord.replace(/[a-zA-Z]/g, '_').split('');
+    room.hiddenIndices = [];
+    for (let i = 0; i < chosenWord.length; i++) {
+        // Only consider letters for hints (ignore spaces/hyphens)
+        if (/[a-zA-Z]/.test(chosenWord[i])) {
+            room.hiddenIndices.push(i);
+        }
+    }
+    // -------------------------
+    
     room.players.forEach((player) => {
         const isArtist = player.id === room.currentArtist;
-        const wordPayload = isArtist ? room.currentWord : room.currentWord.replace(/[a-zA-Z]/g, '_');
+        const wordPayload = isArtist ? room.currentWord : room.hintState.join('');
         io.to(player.id).emit("game:round_started", {
             state: room.state,
             word: wordPayload,
@@ -97,6 +117,30 @@ function startDrawingPhase(io, code, room, chosenWord) {
     gameIntervals[code] = setInterval(() => {
         room.timer--;
         io.to(code).emit("timer:update", room.timer);
+        
+        // --- HINT SYSTEM REVEAL LOGIC ---
+        // Reveal a random letter at 45s, 30s, and 15s marks (up to maxHints limit)
+        if ((room.timer === 45 || room.timer === 30 || room.timer === 15) && room.hintsRevealed < room.maxHints) {
+            if (room.hiddenIndices.length > 0) {
+                // Pick a random hidden letter
+                const randPos = Math.floor(Math.random() * room.hiddenIndices.length);
+                const revealIndex = room.hiddenIndices[randPos];
+                
+                // Remove it from hidden array and reveal it
+                room.hiddenIndices.splice(randPos, 1);
+                room.hintState[revealIndex] = room.currentWord[revealIndex];
+                room.hintsRevealed++;
+                
+                const newHint = room.hintState.join('');
+                
+                // Send it to everyone EXCEPT the artist (the artist already sees the full word!)
+                room.players.forEach(p => {
+                    if (p.id !== room.currentArtist) {
+                        io.to(p.id).emit("game:hint_update", newHint);
+                    }
+                });
+            }
+        }
         
         if (room.timer <= 0) {
             clearInterval(gameIntervals[code]);
@@ -158,3 +202,15 @@ export function checkRoundEndEarly(io, code, room) {
         room.timer = 0;
     }
 }
+
+function handleGameOver(io, code, room) {
+    if (gameIntervals[code]) clearInterval(gameIntervals[code]);
+    room.state = 'game_over';
+    room.timer = null;
+    room.currentArtist = null;
+    room.currentWord = null;
+    
+    // Tell clients game is over so they display the Podium
+    io.to(code).emit("game:state_changed", room.state);
+}
+
