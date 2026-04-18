@@ -101,23 +101,29 @@ function handlePlayerLeave(io, socket, code) {
     const room = roomStore[code];
 
     if (room) {
-        const playerIndex = room.players.findIndex(p => p.id === socket.id);
+        // Give them a 5-second grace period to reconnect before we officially delete them!
+        setTimeout(() => {
+            // Check if they are STILL in the array under their OLD socket ID.
+            // If they reconnected, our 'room:join' logic updated their ID, so this will be -1!
+            const playerIndex = room.players.findIndex(p => p.id === socket.id);
 
-        if (playerIndex !== -1) {
-            const player = room.players.splice(playerIndex, 1)[0];
+            if (playerIndex !== -1) {
+                // They truly left forever. Remove them!
+                const player = room.players.splice(playerIndex, 1)[0];
 
-            socket.leave(code);
+                socket.leave(code);
 
-            io.to(code).emit("room:player_left", {
-                playerId: socket.id, username: player.username
-            });
+                io.to(code).emit("room:player_left", {
+                    playerId: socket.id, username: player.username
+                });
 
-            console.log(`[Socket] ${player.username} (${socket.id}) left room ${code}`);
+                console.log(`[Socket] ${player.username} (${socket.id}) officially left room ${code}`);
 
-            // NEW: If players drop below 2, stop the game!
-            if (room.players.length < 2 && room.state === 'playing') {
-                stopGame(io, code, room);
+                // If players drop below 2, stop the game!
+                if (room.players.length < 2 && room.state === 'playing') {
+                    stopGame(io, code, room);
+                }
             }
-        }
+        }, 5000); // 5000ms = 5 seconds
     }
 }
