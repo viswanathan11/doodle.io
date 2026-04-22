@@ -55,6 +55,17 @@ const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/+$/, "")
 ```
 This line automatically scrubs away any accidental slashes at the end of the URL before it interacts with your API.
 
+### 5. The SPA "Refresh" Crash (React Router 404)
+
+**What went wrong:**
+React is a "Single Page Application" (SPA). Even when you navigate to URLs like `/room/XYZ`, you are still physically on `index.html`—React just fakes the URL change magically in the browser. 
+But when you hit the "Refresh" button while inside `/room/XYZ`, your browser sends a hard request to Vercel asking for a folder called `/room/XYZ/`. Since that folder literally doesn't exist on the server (only `index.html` exists), Vercel panics and returns a generic 404 Not Found error. This only happens in production, not on your local machine, because Vite's local dev server handles this automatically!
+
+**The Fix:**
+We created a `vercel.json` file to act as a traffic cop. We gave it a strictly defined "Rewrite Rule": 
+*"If a user requests any path, ignore it and just serve them `index.html`."* 
+This ensures React is always loaded first, allowing React Router to successfully figure out which room to display without crashing.
+
 ---
 
 ## 📌 Things To Always Remember (Do Not Make These Mistakes!)
@@ -63,3 +74,4 @@ This line automatically scrubs away any accidental slashes at the end of the URL
 - **Never end a Base URL with a slash (`/`):** When declaring `BACKEND_URL` or `FRONTEND_URL` variables anywhere, always format them as `http://domain.com` without the final slash. Double slashes break routing engines.
 - **Root Folders Matter in Render:** When deploying a backend on Render, always ensure the Root Directory in the settings points to `Backend/` (or wherever your package.json lives). If it targets the parent folder, it will crash trying to find the server startup file.
 - **Local `.env` is Local Only:** Never assume the cloud knows what your local passwords/URLs are. You will always need to manually configure them in the hosting dashboard.
+- **SPA's Need Rewrite Rules:** If you ever build a React app with multiple pages using `react-router-dom` and deploy it, you **must** include a `vercel.json` (or equivalent) to rewrite all traffic to `index.html` so refreshing doesn't cause a 404 error.
