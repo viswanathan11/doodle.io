@@ -18,14 +18,18 @@ const server = createServer(app);
 //Intialize socket.io on top of the HTTP Server
 const io = new Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL,
-        methods: ["GET", "POST"]
+        origin: process.env.FRONTEND_URL || "*",
+        methods: ["GET", "POST"],
+        credentials: true
     }
 })
 
 
 
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || "*",
+    credentials: true,
+}));
 app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use('/api/rooms', roomRouter);
