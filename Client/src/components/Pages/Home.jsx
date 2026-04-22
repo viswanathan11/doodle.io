@@ -17,7 +17,8 @@ export default function Home() {
 
   // Helper function: Used by both Create and Join
   const loginGuest = async () => {
-    const authRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/guest`, { username, color });
+    const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/+$/, "");
+    const authRes = await axios.post(`${BACKEND_URL}/api/auth/guest`, { username, color });
     sessionStorage.setItem('doodle_token', authRes.data.token);
     sessionStorage.setItem('doodle_user', JSON.stringify({ username, color }));
   };
@@ -29,7 +30,8 @@ export default function Home() {
     setLoading(true);
     try {
       await loginGuest();
-      const roomRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/rooms`);
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/+$/, "");
+      const roomRes = await axios.post(`${BACKEND_URL}/api/rooms`);
       navigate(`/room/${roomRes.data.inviteCode}`);
     } catch (err) {
       console.error(err);
@@ -47,7 +49,8 @@ export default function Home() {
     setLoading(true);
     try {
       // Check if room exists
-      await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/rooms/${joinCode}`);
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/+$/, "");
+      await axios.get(`${BACKEND_URL}/api/rooms/${joinCode}`);
       await loginGuest();
       navigate(`/room/${joinCode}`);
     } catch (err) {

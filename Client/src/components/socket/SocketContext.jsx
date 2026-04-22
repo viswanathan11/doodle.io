@@ -8,7 +8,8 @@ const SocketContext=createContext();
 export const useSocket=()=>useContext(SocketContext);
 
 export const SocketProvider=({children})=>{
-    const socket=io(import.meta.env.VITE_BACKEND_URL);
+    const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/+$/, "");
+    const socket=io(BACKEND_URL);
 
     useEffect(()=>{
 
