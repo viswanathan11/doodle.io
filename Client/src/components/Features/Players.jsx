@@ -12,7 +12,6 @@ const Players = ({players}) => {
         flexDirection: "column",
         gap: "10px",
         backgroundColor: "#f5f5f5",
-        border: "2px solid #000",
       }}
     >
       <h3
