@@ -136,47 +136,35 @@ const Board = () => {
                 <Players players={players} currentArtist={artistId} />
                 
                 {/* --- MIDDLE COLUMN: GAME AREA --- */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: '0' }}>
+                <div className="game-center-col">
 
                     {/* THE GAME HEADER (Timer & Notifications) */}
-                    <div className="game-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '15px', height: '40px' }}>
-                        
-                        <span style={{ fontWeight: 'bold', fontSize: '1.2rem', textTransform: 'uppercase', flex: 1 }}>
-                            {gameState === 'intermission' ? (
-                                <span style={{ color: 'purple' }}>Round Over. Get Ready...</span>
-                            ) : gameState === 'waiting' ? (
-                                <span style={{ color: '#ff5722', fontSize: '0.9rem' }}>🧍 Waiting for at least 2 players...</span>
-                            ) : gameState === 'word_selection' ? (
-                                <span style={{ color: '#000' }}>Selecting Word...</span>
-                            ) : (
-                                <span style={{ color: isDrawer ? 'green' : 'blue' }}>
-                                    {isDrawer ? '🖌️ You are drawing!' : '🤔 You are guessing!'}
-                                </span>
-                            )}
-                        </span>
-
-                        <div style={{ letterSpacing: '8px', fontSize: '1.8rem', fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
-                            {word}
-                            {gameState !== 'waiting' && <div style={{ fontSize: '1rem', letterSpacing: 'normal', color: '#666', marginTop: '5px' }}>Round {round} / 3</div>}
+                    <div className="game-header glass-panel">
+                        <div className={`timer-box ${timer <= 10 ? 'urgent' : ''}`}>
+                            <span style={{fontSize: '1.8rem'}}>⏱️</span> {timer}
                         </div>
 
-                        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                            {(gameState === 'playing' || gameState === 'word_selection') && (
-                                <div style={{
-                                    padding: '5px 15px', border: '2px solid #000', borderRadius: '8px',
-                                    backgroundColor: '#fff', fontWeight: 'bold', fontSize: '1.5rem',
-                                    color: timer <= 10 ? '#f44336' : '#000', 
-                                    boxShadow: '3px 3px 0px #000'
-                                }}>
-                                    ⏳ {timer}s
-                                </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, textAlign: 'center' }}>
+                            {gameState === 'intermission' ? (
+                                <span style={{ color: 'purple', fontSize: '1.5rem' }}>Round Over. Get Ready...</span>
+                            ) : gameState === 'waiting' ? (
+                                <span style={{ color: '#ff5722', fontSize: '1.2rem' }}>🧍 Waiting for at least 2 players...</span>
+                            ) : gameState === 'word_selection' ? (
+                                <span style={{ color: '#000', fontSize: '1.5rem' }}>Selecting Word...</span>
+                            ) : (
+                                <div className="word-box">{word}</div>
                             )}
+                            {gameState !== 'waiting' && <div className="round-info">Round {round} / 3</div>}
+                        </div>
+
+                        <div style={{ width: '80px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.2rem', color: isDrawer ? 'green' : 'blue' }}>
+                            {isDrawer ? '🖌️ Draw' : '🤔 Guess'}
                         </div>
                     </div>
 
                     {/* MID-COLUMN DYNAMIC AREA */}
                     {gameState === 'game_over' ? (
-                        <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: '10px', border: '3px solid #000', padding: '40px' }}>
+                        <div className="glass-panel" style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
                             <h1 style={{ fontSize: '3rem', marginBottom: '10px' }}>🏆 PODIUM 🏆</h1>
                             <h3 style={{ color: '#666', marginBottom: '30px' }}>Final Standings</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '80%' }}>
@@ -193,24 +181,20 @@ const Board = () => {
                             </div>
                             <button 
                                 onClick={() => navigate('/')}
-                                style={{ 
-                                    marginTop: '40px', padding: '15px 40px', fontSize: '1.2rem', fontWeight: 'bold', 
-                                    color: '#fff', backgroundColor: '#ff5722', border: '3px solid #000', 
-                                    borderRadius: '8px', cursor: 'pointer', boxShadow: '3px 3px 0px #000',
-                                    textTransform: 'uppercase', letterSpacing: '1px'
-                                }}>
+                                className="btn-primary"
+                                style={{ marginTop: '40px' }}>
                                 Exit to Lobby
                             </button>
                         </div>
                     ) : (
                         <>
                             {/* CANVAS WRAPPER (Includes Overlay) */}
-                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', width: '100%' }}>
+                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', width: '100%', flex: 1 }}>
                                 
                                 {gameState === 'word_selection' && (
                                     <div style={{
                                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                                        backgroundColor: 'rgba(255,255,255,0.85)', zIndex: 10, borderRadius: '8px',
+                                        backgroundColor: 'rgba(255,255,255,0.85)', zIndex: 10, borderRadius: '16px',
                                         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                                     }}>
                                         {isDrawer ? (
@@ -220,11 +204,7 @@ const Board = () => {
                                                     {wordOptions.map(opt => (
                                                         <button key={opt} 
                                                             onClick={() => socket.emit("game:word_select", { code, word: opt })}
-                                                            style={{
-                                                                padding: '10px 20px', fontSize: '1.2rem', cursor: 'pointer',
-                                                                backgroundColor: '#fff', border: '2px solid #000', 
-                                                                borderRadius: '8px', boxShadow: '3px 3px 0px #000', fontWeight: 'bold'
-                                                            }}>
+                                                            className="btn-primary">
                                                             {opt}
                                                         </button>
                                                     ))}
@@ -240,10 +220,12 @@ const Board = () => {
                             </div>
 
                             {/* The Tool Panel */}
-                            <div className="glass-panel" style={{ marginTop: '20px', padding: '15px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
-                                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ cursor: 'pointer' }}/>
-                                <input type="range" min="1" max="50" value={brushSize} onChange={(e) => setBrushSize(e.target.value)} style={{ cursor: 'pointer' }}/>
-                            </div>
+                            {isDrawer && gameState === 'playing' && (
+                                <div className="glass-panel" style={{ padding: '10px 15px', display: 'flex', gap: '20px', justifyContent: 'center', alignItems: 'center' }}>
+                                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ cursor: 'pointer', width: '40px', height: '40px', border: 'none', borderRadius: '5px' }}/>
+                                    <input type="range" min="1" max="50" value={brushSize} onChange={(e) => setBrushSize(e.target.value)} style={{ cursor: 'pointer', flex: 1, maxWidth: '200px' }}/>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
