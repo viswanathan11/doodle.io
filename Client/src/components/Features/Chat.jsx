@@ -45,10 +45,8 @@ const Chat = () => {
   }
   return (
     <div
-      className="glass-panel"
+      className="glass-panel side-panel"
       style={{
-        width: "280px",
-        height: "600px",
         display: "flex",
         flexDirection: "column",
         padding: "15px",

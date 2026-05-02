@@ -9,6 +9,28 @@ const DrawingCanvas = ({ color = '#000000', brushSize = 5, isDrawer = true }) =>
   const socket=useSocket();
   const{code}=useParams();
   
+  const containerRef = useRef(null);
+  const [stageSize, setStageSize] = useState({ width: 800, height: 600, scale: 1 });
+
+  useEffect(() => {
+    const checkSize = () => {
+      if (containerRef.current) {
+        const parentWidth = containerRef.current.offsetWidth;
+        if (parentWidth < 800) {
+          const scale = parentWidth / 800;
+          setStageSize({ width: parentWidth, height: 600 * scale, scale: scale });
+        } else {
+          setStageSize({ width: 800, height: 600, scale: 1 });
+        }
+      }
+    };
+
+    checkSize();
+    window.addEventListener('resize', checkSize);
+    return () => window.removeEventListener('resize', checkSize);
+  }, []);
+
+  
   useEffect(()=>{
     if(!socket) return;
 
@@ -43,10 +65,12 @@ const DrawingCanvas = ({ color = '#000000', brushSize = 5, isDrawer = true }) =>
     // Securtity rule: if player not allwed to drawing they cannot draw on board
     if(!isDrawer) return;
     isDrawing.current = true;
-    const pos = e.target.getStage().getPointerPosition();
+    const stage = e.target.getStage();
+    const pos = stage.getPointerPosition();
+    const scale = stageSize.scale;
     
     // Create a new line based on where they clicked
-    setLines([...lines, { tool: 'pen', color, size: brushSize, points: [pos.x, pos.y] }]);
+    setLines([...lines, { tool: 'pen', color, size: brushSize, points: [pos.x / scale, pos.y / scale] }]);
   };
 
   // Fired when the user drags the mouse
@@ -58,11 +82,12 @@ const DrawingCanvas = ({ color = '#000000', brushSize = 5, isDrawer = true }) =>
     }
 
     const stage = e.target.getStage();
-    const point = stage.getPointerPosition();
+    const pos = stage.getPointerPosition();
+    const scale = stageSize.scale;
     
     // Get the last line drawn and add the new point to it
     let lastLine = lines[lines.length - 1];
-    lastLine.points = lastLine.points.concat([point.x, point.y]);
+    lastLine.points = lastLine.points.concat([pos.x / scale, pos.y / scale]);
 
     // Replace the last line in our state array
     lines.splice(lines.length - 1, 1, lastLine);
@@ -91,13 +116,16 @@ const DrawingCanvas = ({ color = '#000000', brushSize = 5, isDrawer = true }) =>
   };
 
   return (
-    <div style={{ border: '2px solid #ccc', display: 'inline-block', backgroundColor: 'white' }}>
+    <div ref={containerRef} className="glass-panel" style={{ width: '100%', maxWidth: '800px', display: 'flex', justifyContent: 'center', backgroundColor: 'white', overflow: 'hidden' }}>
       <Stage
-        width={800}
-        height={600}
+        width={stageSize.width}
+        height={stageSize.height}
+        scaleX={stageSize.scale}
+        scaleY={stageSize.scale}
         onMouseDown={handleMouseDown}
         onMousemove={handleMouseMove}
         onMouseup={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         // These are for touch support (mobile/tablets)
         onTouchStart={handleMouseDown}
         onTouchMove={handleMouseMove}
