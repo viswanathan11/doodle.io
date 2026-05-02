@@ -120,17 +120,17 @@ const Board = () => {
     }, [socket, code, navigate, artistId]);
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <div className="game-page-wrapper">
             
             {/* THE ROOM CODE BADGE */}
-            <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#fff', padding: '6px 15px', borderRadius: '5px', border: '2px solid #000', boxShadow: '3px 3px 0px #000' }}>
+            <div className="room-code-badge">
                 <span style={{ fontWeight: 'bold' }}>Code :&emsp; <span style={{ letterSpacing: '1px', fontSize: '1.2rem', color: '#ff5722', fontWeight: 'bold' }}>{code}</span></span>
                 <button onClick={copyRoomCode} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '10px', padding: '6px 10px', cursor: 'pointer', backgroundColor: '#f0f0f0', border: '2px solid #000', borderRadius: '8px', fontWeight: 'bold' }}>
                     Copy
                 </button>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', marginTop: '20px', padding: '0 20px', width: '100%', gap: '30px' }}>
+            <div className="game-room-container">
                 
                 {/* Left Column: Players */}
                 <Players players={players} currentArtist={artistId} />
@@ -139,7 +139,7 @@ const Board = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: '0' }}>
 
                     {/* THE GAME HEADER (Timer & Notifications) */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '15px', height: '40px' }}>
+                    <div className="game-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '15px', height: '40px' }}>
                         
                         <span style={{ fontWeight: 'bold', fontSize: '1.2rem', textTransform: 'uppercase', flex: 1 }}>
                             {gameState === 'intermission' ? (
@@ -240,7 +240,7 @@ const Board = () => {
                             </div>
 
                             {/* The Tool Panel */}
-                            <div className="glass-panel" style={{ marginTop: '20px', padding: '15px', display: 'flex', gap: '20px' }}>
+                            <div className="glass-panel" style={{ marginTop: '20px', padding: '15px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
                                 <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ cursor: 'pointer' }}/>
                                 <input type="range" min="1" max="50" value={brushSize} onChange={(e) => setBrushSize(e.target.value)} style={{ cursor: 'pointer' }}/>
                             </div>

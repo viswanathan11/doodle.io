@@ -5,10 +5,8 @@ const Players = ({players}) => {
 
   return (
     <div
-      className="glass-panel"
+      className="glass-panel side-panel"
       style={{
-        width: "280px",
-        height: "600px",
         padding: "15px",
         display: "flex",
         flexDirection: "column",
