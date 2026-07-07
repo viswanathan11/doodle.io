@@ -8,7 +8,7 @@ Welcome back! This document contains everything you need to talk confidently abo
 
 Doodle.io is a multiplayer real-time drawing and guessing game. Players join a room via an invite code, take turns drawing words while others guess in real-time chat, accumulate points based on speed, and compete to top the leaderboard.
 
-| Layer | Technology | Rationale |
+| Layer | Technology | Rationale
 | :--- | :--- | :--- |
 | **Frontend** | **React (Vite)** | Fast HMR (Hot Module Replacement), modular component structure, and responsive layout. |
 | **Canvas** | **React-Konva** | Canvas wrapper enabling responsive drawing, stage scaling, and complex shape manipulation. |
