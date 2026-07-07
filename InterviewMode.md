@@ -160,4 +160,7 @@ If you've been away for a long day and need to get back in the zone, read this c
 3. Open two separate browser tabs in incognito mode at `http://localhost:5173`.
 4. Enter usernames in both, copy the invite code from one, and join from the other.
 5. Draw on the screen and verify strokes sync instantly.
+
+
+
 6. Guess the word in chat in the second tab and verify points accumulate.
