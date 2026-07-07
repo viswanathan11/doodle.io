@@ -45,7 +45,7 @@ export default function Home() {
     e.preventDefault();
     if (!username.trim()) return alert("Please enter a username!");
     if (!joinCode.trim()) return alert("Please enter a room code!");
-    
+
     setLoading(true);
     try {
       // Check if room exists
@@ -141,7 +141,6 @@ export default function Home() {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
